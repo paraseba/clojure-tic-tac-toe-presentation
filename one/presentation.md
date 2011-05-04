@@ -138,7 +138,9 @@
 
 * Functional language
 * Runs on the JVM (and CLR)
+* Compiled
 * 3 years old
+* Great community
 * Active development
 * Several new concepts and ideas
 * Several old and great concepts and ideas
@@ -199,6 +201,16 @@
     (map inc [2 3 4])
 
 <!SLIDE >
+# Functions are first citizens
+
+    (defn increment [n]
+      (fn [x]
+        (+ n x)))
+
+    [increment (increment 5)
+     + #(+ 1 %) (foo increment)]
+
+<!SLIDE >
 # Turing Complete
 
     (defn factorial [n]
@@ -216,14 +228,14 @@
 <!SLIDE smbullets>
 # Persistent collections
 
-* Inmutables
-* Se opera sobre ellas con funciones
-* Garantías de performance
-* Las copias mantienen las garantías
-* Es lo que se viene
+* Immutable
+* You operate on them with functions that return new collections
+* They maintain performance guarantees, no copy all behavior
+* Old copies also maintain guarantees
+* You'll have this in you language pretty soon
 
 <!SLIDE>
-# Operaciones
+# Basic operations
 
     (conj '(1 2 3) 0)      ->  (0 1 2 3)
     (conj [1 2 3] 4)       ->  (1 2 3 4)
@@ -231,9 +243,12 @@
 
 <!SLIDE>
 # "Variables"
+## Lexical scope
 
     (let [x 1 y 2]
-      (+ x y))
+      (if (> x 1)
+       (+ x y)
+       (- x y)))
 
 <!SLIDE>
 # Keywords
@@ -246,11 +261,11 @@
 
 
 <!SLIDE smbullets>
-# Secuencias
+# Sequences
 
 * first, rest, cons
-* Lazy
-* Usadas extensivamente en las funciones core de Clojure
+* May be lazy
+* Used everywhere in core Clojure functions
 
 <!SLIDE small>
 # Laziness & composability
@@ -269,57 +284,59 @@
 
     (indexed [:a :b :c])  ->  ([0 :a] [1 :b] [2 :c])
 
+<!SLIDE >
+# How to model without state
+## You'll probably need some practice
+
+<!SLIDE smbullets>
+# How to model without state
+
+* Values, not state
+* Functions return new values
+* Pure functions
+* Use maps instead of objects
+* Mutability propagates
+
 <!SLIDE title-slide>
-# Cómo modelar sin estado?
-## Como sea, pero hay que aprender
+# Identity concept changes
 
 <!SLIDE smbullets>
 
-* Valores en vez de estado
-* Mapas en vez de objetos
-* Todo inmutable
-* Las acciones devuelven un nuevo valor
-* Las funciones son puras
-
-<!SLIDE title-slide>
-# La idea de identidad cambia
-
-<!SLIDE bullets>
-
-* En OOP identidad = espacio de memoria
-* Identidad = puntero
-* Los "valores" de una identidad cambian
+* In OOP identity = memory location
+* Identity = pointer
+* In Clojure we change the values pointed by an identity
+* Values change by means of pure functions
 
 
-<!SLIDE bullets>
-# En Clojure
+<!SLIDE smbullets>
+# Clojure offers
 
-* Mecanismo de manejo de identidad
-* Representación del tiempo y el cambio
-* Coordinación de cambio
+* A mechanism to handle identity in your program
+* A way to represent time and change
+* A mechanism for change coordination
 
 <!SLIDE>
-# Tres tipos de identidades
+# Three types of identities
 
-###Dependiendo del tipo de cambio deseado
+###Depending of how to handle change and coordination
 
 <table style="width:70%; margin: auto auto; border:solid 2px; text-align: center;" >
   <tr>
     <th>Reference</td>
-    <th>Coordinado</td>
-    <th>Sincrónico</td>
+    <th>Coordinated</td>
+    <th>Synchronic</td>
   </tr>
 
   <tr>
     <td>ref</td>
-    <td>Si</td>
-    <td>Si</td>
+    <td>Yes</td>
+    <td>Yes</td>
   </tr>
 
   <tr>
     <td>atom</td>
     <td>No</td>
-    <td>Si</td>
+    <td>Yes</td>
   </tr>
 
   <tr>
@@ -369,10 +386,11 @@
 
 <!SLIDE>
 # Show me the code
-## ta-te-ti
+## tic-tac-toe
+### https://github.com/paraseba/tictactoe
 
 <!SLIDE small>
-# El tablero
+# The board
 
     (defn make-board [x-cells o-cells]
       {:x (set x-cells) :o (set o-cells)})
@@ -387,7 +405,7 @@
                               (x-cells board)
                               (o-cells board)))
 <!SLIDE small>
-# El tablero
+# The board
 
     (defn mark [board cell]
       (assert (contains? (empty-cells board) cell))
@@ -403,7 +421,7 @@
                (conj (t board) cell))))
 
 <!SLIDE smaller>
-# Ganador
+# Winner
 
     (def win-cells
       (let [row1 #{0 1 2}
@@ -425,16 +443,16 @@
         (won? (:o position)) :o))
 
 <!SLIDE smbullets>
-# Cómo jugar
+# The AI
 
-* Arranco con una posición
-* Genero el árbol de todas las jugadas posibles
-* Selecciono la mejor asumiendo que el otro juega su mejor
+* Start with a given position
+* Generate the tree of all possible moves
+* Pick the best one assuming that the opponent will pick his best one
 
 <!SLIDE>
-# Jugadas posibles
+# Posible moves
 
-    (defn plays [board]
+    (defn moves [board]
       (if (winner board)
         []
         (map
@@ -443,16 +461,16 @@
 
 
 <!SLIDE small>
-# Árbol de jugadas
+# Game tree
 
-    (defn game-tree [board generator]
+    (defn game-tree [board make-move]
       {:node board
        :children (map
-                   #(game-tree % generator)
-                   (generator board))})
+                   #(game-tree % make-move)
+                   (make-move board))})
 
 <!SLIDE >
-# Evaluación estática
+# Static evaluation
 
     (defn evaluate-static-position [position]
       (case (winner position)
@@ -461,47 +479,84 @@
         0))
 
 <!SLIDE small>
-# Evaluación dinámica
+# Dynamic evaluation
 
-    (defn evaluate [tree]
-      (minimize tree))
+    (defn evaluator [static-evaluator]
+      (fn [tree]
+        (minimize static-evaluator tree)))
 
-    (defn best-play [position]
-      (let [tree (game-tree position plays)
-            children (:children tree)]
-        (:node (apply max-key evaluate children))))
+    (defn best-move [tree static-evaluator]
+      (:node (apply max-key
+                    (evaluator static-evaluator)
+                    (:children tree))))
 
 <!SLIDE small>
-# Evaluación dinámica
+# Dynamic evaluation
 
-    (defn maximize [tree]
+    (defn maximize [evaluator tree]
       (if (seq (:children tree))
-        (apply max (map minimize (:children tree)))
-        (evaluate-static-position (:node tree))))
+        (apply max
+               (map #(minimize evaluator %)
+                    (:children tree)))
+        (evaluator (:node tree))))
 
-    (defn minimize [tree]
+    (defn minimize [evaluator tree]
       (if (seq (:children tree))
-        (apply min (map maximize (:children tree)))
-        (evaluate-static-position (:node tree))))
+        (apply min
+               (map #(maximize evaluator %)
+                    (:children tree)))
+        (evaluator (:node tree))))
 
 <!SLIDE bullets>
-# Qué conseguimos
+# What we got
 
-* No hay estado, no hay assignment
-* Fácil de testear
+* No state at all, no assignment
+* Damn easy to test
 * Modular
 
 <!SLIDE bullets>
 # Modular
 
-* Sirve para cualquier juego
-* El juego está representado por plays y winner
-* Lazy
-* Prune
+* It plays any game of alternating turns
+* A small set of functions describe the particular game
+* Lazy evaluated
+* Easy to prune the tree
+* Easy parallelization?
+
+<!SLIDE title-slide>
+# And finally
+
+<!SLIDE title-slide>
+# Just to leave you wanting more
 
 <!SLIDE >
 # Macros
-## La característica más importante de Lisp
+## Maybe the most important Lisp feature
+
+<!SLIDE smbullets>
+# Macros
+
+* Run your code at compile time
+* Get code as input
+* Return code as output
+* It's all data!
+
+<!SLIDE code>
+
+    (def initial-board
+      (board - - -
+             - - -
+             - - -))
+
+    (def mid-game
+      (board - x -
+             o x -
+             - o x))
+
+    (def game-end
+      (board x o o
+             x x o
+             o x x))
 
 <!SLIDE code>
 
@@ -517,23 +572,6 @@
 
 <!SLIDE code>
 
-    (def initial-board
-      (board - - -
-             - - -
-             - - -))
-
-    (def game-end
-      (board x o o
-             x x o
-             o x x))
-
-<!SLIDE code>
-
-    (def symbol->cell
-      {'n 1 's 7 'e 5
-       'w 3 'c 4 'o 4
-       'ne 2 'nw 0 'se 8 'sw 6})
-
     (defmacro mark# [board sym]
       `(mark ~board ~(symbol->cell sym)))
      
@@ -543,16 +581,17 @@
 
 
 <!SLIDE smaller>
+# When was the last time you saw tests like these
 
     (deftest play-test
-      (is (= (best-play (board - x x
+      (is (= (best-move (board - x x
                                - o -
                                - - o))
              (board x x x
                     - o -
                     - - o)))
 
-      (is (= (best-play (board - - o
+      (is (= (best-move (board - - o
                                - x o
                                x - -))
              (board - - o
@@ -560,14 +599,15 @@
                     x - x))))
 
 <!SLIDE >
-# Eso es todo
+# Thank you
 
 <!SLIDE smbullets>
-# Bibliografía
+# Where to go for more
 
 * SICP: Structure & Interpretation of Computer Programs (Abelson/Sussman)
 * Why functional programming matters, John Hughes
 * Programming Clojure, Stuart Halloway
 * The Joy of Clojure, Stuart Halloway, Fogus & Houser
 * \#clojure @ freenode
+* https://github.com/paraseba/tictactoe
 
