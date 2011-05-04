@@ -1,0 +1,7 @@
+{
+  "name": "Introducción a Clojure",
+  "description": "Introducción a Clojure",
+  "sections": [
+    {"section":"one"}
+  ]
+}
