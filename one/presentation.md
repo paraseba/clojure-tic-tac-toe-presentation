@@ -146,7 +146,7 @@
 * Several old and great concepts and ideas
 
 <!SLIDE smbullets>
-# It is a Lisp
+# It's a Lisp
 
 * Language family
 * Born in 1958 (Fortran is older)
@@ -201,7 +201,7 @@
     (map inc [2 3 4])
 
 <!SLIDE >
-# Functions are first citizens
+# Functions are first class citizens
 
     (defn increment [n]
       (fn [x]
@@ -219,7 +219,7 @@
         (* n (factorial (- n 1)))))
 
 <!SLIDE title-slide>
-# So it's all data
+# So, it's all data
 
 <!SLIDE >
 # And that's it
@@ -239,7 +239,7 @@
 
     (conj '(1 2 3) 0)      ->  (0 1 2 3)
     (conj [1 2 3] 4)       ->  (1 2 3 4)
-    (assoc {1 2} 3 4 1 5)  -> {3 4 1 5}
+    (assoc {1 2, :foo :bar} 3 4 1 5)  -> {:foo :bar, 3 4, 1 5}
 
 <!SLIDE>
 # "Variables"
