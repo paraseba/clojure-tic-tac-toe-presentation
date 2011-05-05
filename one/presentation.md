@@ -387,7 +387,7 @@
 <!SLIDE>
 # Show me the code
 ## tic-tac-toe
-### https://github.com/paraseba/tictactoe
+### (https://github.com/paraseba/tictactoe)
 
 <!SLIDE small>
 # The board
