@@ -1,0 +1,748 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Introducción a Clojure</title>
+
+  <link rel="stylesheet" href="./css/reset.css" type="text/css"/>
+  <link rel="stylesheet" href="./css/showoff.css" type="text/css"/>
+
+  <script type="text/javascript" src="./js/jquery-1.4.2.min.js"></script>
+  <script type="text/javascript" src="./js/jquery.cycle.all.js"></script>
+	<script type="text/javascript" src="./js/jquery-print.js"></script>
+  <script type="text/javascript" src="./js/jquery.batchImageLoad.js"></script>
+
+  <script type="text/javascript" src="./js/jquery.doubletap-0.1.js"></script>
+
+  <script type="text/javascript" src="./js/fg.menu.js"></script>
+  <script type="text/javascript" src="./js/showoff.js"></script>
+  <script type="text/javascript" src="./js/jTypeWriter.js"> </script>
+  <script type="text/javascript" src="./js/sh_main.min.js"></script>
+  <script type="text/javascript" src="./js/core.js"></script>
+  <script type="text/javascript" src="./js/showoffcore.js"></script>
+
+  <link type="text/css" href="./css/fg.menu.css" media="screen" rel="stylesheet" />
+  <link type="text/css" href="./css/theme/ui.all.css" media="screen" rel="stylesheet" />
+  <link type="text/css" href="./css/sh_style.css" rel="stylesheet" >
+
+  
+
+  
+
+  <script type="text/javascript">
+  $(function(){
+    setupPreso(false, './');
+  });
+  </script>
+</head>
+
+<body>
+
+
+<a tabindex="0" href="#search-engines" class="fg-button fg-button-icon-right ui-widget ui-state-default ui-corner-all" id="navmenu"><span class="ui-icon ui-icon-triangle-1-s"></span>slides</a>
+<div id="navigation" class="hidden"></div>
+
+<div id="help">
+  <table>
+    <tr><td class="key">space, &rarr;</td><td>next slide</td></tr>
+    <tr><td class="key">&larr;</td><td>previous slide</td></tr>
+    <tr><td class="key">d</td><td>debug mode</td></tr>
+    <tr><td class="key">## &lt;ret&gt;</td><td>go to slide #</td></tr>
+    <tr><td class="key">c</td><td>table of contents (vi)</td></tr>
+    <tr><td class="key">f</td><td>toggle footer</td></tr>
+    <tr><td class="key">r</td><td>reload slides</td></tr>
+    <tr><td class="key">z</td><td>toggle help (this)</td></tr>
+  </table>
+</div>
+
+<div class="buttonNav">
+  <input type="submit" onClick="prevStep();" value="prev"/>
+  <input type="submit" onClick="nextStep();" value="next"/>
+</div>
+
+<div id="preso">loading presentation...</div>
+<div id="footer">
+  <span id="slideInfo"></span>
+  <span id="debugInfo"></span>
+  <span id="notesInfo"></span>
+</div>
+
+<div id="slides" class="offscreen" style="display:none;">
+<div class="slide" data-transition="none"><div class="content bullets" ref="one/presentation/1">
+<h1>Clojure Introduction</h1>
+
+<ul>
+<li>Sebasti&#xE1;n B. Galkin</li>
+<li>@paraseba</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/2">
+<h1>TOC</h1>
+
+<ul>
+<li>Some problems with our day to day languages</li>
+<li>Lisp/Clojure</li>
+<li>Syntax</li>
+<li>Data structures</li>
+<li>State/Identity</li>
+<li>Sample code</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content smaller" ref="one/presentation/3">
+<h1>Problem 1</h1>
+
+<pre class="sh_ruby"><code>class DiceSet
+  attr_reader :values
+
+  def initialize; @values = []; end
+
+  def roll(x)
+    @values.clear
+    x.times { @values &lt;&lt; rand(6) + 1 }
+  end
+end
+
+dice = DiceSet.new
+dice.roll(5)
+roll1 = dice.values
+dice.roll(5)
+roll2 = dice.values
+
+assert_not_equal roll1, roll2</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smaller" ref="one/presentation/4">
+<h1>Problem 2</h1>
+
+<pre class="sh_java"><code>public class Account {
+   public void deposit(int amount) {
+     if (balance + amount &gt; 0)
+       balance += amount;
+     else
+       error!!!!
+   }
+}
+
+// Thread 1
+account1.deposit(100);
+
+// Thread 2
+account1.withdraw(100);</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smaller" ref="one/presentation/5">
+<h1>Problem 2 (fix?)</h1>
+
+<pre class="sh_java"><code>public class Account {
+   public synchronized void deposit(int amount) {
+     if (balance + amount &gt; 0)
+       balance += amount;
+     else
+       error!!!!
+   }
+}</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smaller" ref="one/presentation/6">
+<h1>Problem 2b</h1>
+
+<pre class="sh_java"><code>public class Account {
+   public void transfer(Account other, int amount) {
+     this.deposit(- amount);
+     other.deposit(amount);
+   }
+}</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smaller" ref="one/presentation/7">
+<h1>Problem 2b</h1>
+
+<pre class="sh_java"><code>// Thread 1
+account1.transfer(account2, 100);
+
+// Thread 2
+account1.balance() + account2.balance()</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smaller" ref="one/presentation/8">
+<h1>Problem 2b (fix?)</h1>
+
+<pre class="sh_java"><code>public class Account {
+  public void transfer(Account other, int amount) {
+    synchronized(this) {
+      synchronized(other) {
+        this.deposit(- amount);
+        other.deposit(amount);
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smaller" ref="one/presentation/9">
+<h1>Problem 2c</h1>
+
+<pre class="sh_java"><code>// Thread 1
+account1.transfer(account2, 100);
+
+// Thread 2
+account2.transfer(account1, 100);</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content title-slide" ref="one/presentation/10">
+<h1>Mutable objects</h1>
+
+<h2>The one and only problem</h2>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/11">
+<h1>Complexity</h1>
+
+<ul>
+<li>Hard to reason about programs</li>
+<li>Hard to test programs</li>
+<li>Hard to parallelize programs</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content title-slide" ref="one/presentation/12">
+<h1>Immutability</h1>
+
+<h2>The solution</h2>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/13">
+<h1>Clojure</h1>
+
+<ul>
+<li>Functional language</li>
+<li>Runs on the JVM (and CLR)</li>
+<li>Compiled</li>
+<li>3 years old</li>
+<li>Great community</li>
+<li>Active development</li>
+<li>Several new concepts and ideas</li>
+<li>Several old and great concepts and ideas</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/14">
+<h1>It's a Lisp</h1>
+
+<ul>
+<li>Language family</li>
+<li>Born in 1958 (Fortran is older)</li>
+<li>Influenced by Church's Lambda Calculus</li>
+<li>Code = Data (homoiconic)</li>
+<li>Lots of parentheses</li>
+<li>Maybe the most expressive language ever invented</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/15">
+<h1>Native types</h1>
+
+<pre><code>1, 3, 5.5, "hello", 3/4, POJO
+Lists (1 2 3 "hello")
+Vectors [1 2 3 "hello"]
+Maps {1 "hello", :two "bye"}
+Sets #{1 2 3 "hello"}
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/16">
+<h1>A function call is just a list</h1>
+
+<pre><code>(println "Hello World!")
+
+(function-name arguments...)
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content small" ref="one/presentation/17">
+<h1>Function definition</h1>
+
+<pre><code>(fn [x y]
+  (+ (* x x) (* y y)))
+
+(defn square-sum
+  "The sum of the squares"
+  [x y]
+  (+ (* x x)
+     (* y y)))
+
+(def square-sum
+  (fn [x y] (+ (* x x) (* y y))))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/18">
+<h2>Function definition is just lists and vectors</h2>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/19">
+<h1>Anonymous functions</h1>
+
+<pre><code>#(inc %)
+#(+ %1 3 %2)
+(map #(inc %) [2 3 4])
+(map inc [2 3 4])
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/20">
+<h1>Functions are first class citizens</h1>
+
+<pre><code>(defn increment [n]
+  (fn [x]
+    (+ n x)))
+
+[increment (increment 5)
+ + #(+ 1 %) (foo increment)]
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/21">
+<h1>Turing Complete</h1>
+
+<pre><code>(defn factorial [n]
+  (if (= n 0)
+    1
+    (* n (factorial (- n 1)))))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content title-slide" ref="one/presentation/22">
+<h1>So, it's all data</h1>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/23">
+<h1>And that's it</h1>
+
+<h2>Did you notice I didn't mention assignment?</h2>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/24">
+<h1>Persistent collections</h1>
+
+<ul>
+<li>Immutable</li>
+<li>You operate on them with functions that return new collections</li>
+<li>They maintain performance guarantees, no copy all behavior</li>
+<li>Old copies also maintain guarantees</li>
+<li>You'll have this in you language pretty soon</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/25">
+<h1>Basic operations</h1>
+
+<pre><code>(conj '(1 2 3) 0)      -&gt;  (0 1 2 3)
+(conj [1 2 3] 4)       -&gt;  (1 2 3 4)
+(assoc {1 2, :foo :bar} 3 4 1 5)  -&gt; {:foo :bar, 3 4, 1 5}
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/26">
+<h1>"Variables"</h1>
+
+<h2>Lexical scope</h2>
+
+<pre><code>(let [x 1 y 2]
+  (if (&gt; x 1)
+   (+ x y)
+   (- x y)))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/27">
+<h1>Keywords</h1>
+
+<pre><code>(= :foo :foo)
+
+(let [m {:a 1, :b 2}]
+  (m :a)
+  (:a m))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/28">
+<h1>Sequences</h1>
+
+<ul>
+<li>first, rest, cons</li>
+<li>May be lazy</li>
+<li>Used everywhere in core Clojure functions</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content small" ref="one/presentation/29">
+<h1>Laziness &amp; composability</h1>
+
+<pre><code>(first
+  (filter
+    even?
+    (map inc (range 1e6))))
+
+(def naturals (iterate inc 1))
+
+(take 5 naturals)
+
+(defn indexed [s]
+  (map vector (iterate inc 0) s))
+
+(indexed [:a :b :c])  -&gt;  ([0 :a] [1 :b] [2 :c])
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/30">
+<h1>How to model without state</h1>
+
+<h2>You'll probably need some practice</h2>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/31">
+<h1>How to model without state</h1>
+
+<ul>
+<li>Values, not state</li>
+<li>Functions return new values</li>
+<li>Pure functions</li>
+<li>Use maps instead of objects</li>
+<li>Mutability propagates</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content title-slide" ref="one/presentation/32">
+<h1>Identity concept changes</h1>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/33">
+<ul>
+<li>In OOP identity = memory location</li>
+<li>Identity = pointer</li>
+<li>In Clojure we change the values pointed by an identity</li>
+<li>Values change by means of pure functions</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/34">
+<h1>Clojure offers</h1>
+
+<ul>
+<li>A mechanism to handle identity in your program</li>
+<li>A way to represent time and change</li>
+<li>A mechanism for change coordination</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/35">
+<h1>Three types of identities</h1>
+
+<h3>Depending of how to handle change and coordination</h3>
+
+<table style="width:70%; margin: auto auto; border:solid 2px; text-align: center;">
+  <tr>
+    <th>Reference</th>
+    <th>Coordinated</th>
+    <th>Synchronic</th>
+  </tr>
+
+  <tr>
+    <td>ref</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+
+  <tr>
+    <td>atom</td>
+    <td>No</td>
+    <td>Yes</td>
+  </tr>
+
+  <tr>
+    <td>agent</td>
+    <td>No</td>
+    <td>No</td>
+  </tr>
+</table>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/36">
+<h1>ref</h1>
+
+<pre><code>(defn transfer [amount acc1 acc2]
+  (dosync
+    (alter acc1 update-in [:balance]
+           #(- % amount))
+    (alter acc2 update-in [:balance]
+           #(+ % amount))))
+
+(let [acc1 (ref {:balance 100})
+      acc2 (ref {:balance 300})]
+    (transfer 50 acc1 acc2)
+    @acc1
+    @acc2)
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/37">
+<h1>atom</h1>
+
+<pre><code>(def processed-requests (atom 0))
+
+(defn processed []
+  (swap! processed-requests inc))
+
+@processed-requests
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/38">
+<h1>agent</h1>
+
+<pre><code>(def particle-position (atom [0 0]))
+
+(defn move [position forces]
+  ...
+  [new-x new-y])
+
+(send particle-position move acting-forces)
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/39">
+<h1>Show me the code</h1>
+
+<h2>tic-tac-toe</h2>
+
+<h3>https://github.com/paraseba/tictactoe</h3>
+</div>
+</div><div class="slide" data-transition="none"><div class="content small" ref="one/presentation/40">
+<h1>The board</h1>
+
+<pre><code>(defn make-board [x-cells o-cells]
+  {:x (set x-cells) :o (set o-cells)})
+
+(def x-cells :x)
+(def o-cells :o)
+
+(def all-cells (apply sorted-set (range 9)))
+
+(defn empty-cells [board]
+  (clojure.set/difference all-cells
+                          (x-cells board)
+                          (o-cells board)))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content small" ref="one/presentation/41">
+<h1>The board</h1>
+
+<pre><code>(defn mark [board cell]
+  (assert (contains? (empty-cells board) cell))
+  (let [turn (fn [board]
+               (if (&gt; (count (x-cells board))
+                      (count (o-cells board)))
+                 :o
+                 :x))
+
+        t (turn board)]
+    (assoc board
+           t
+           (conj (t board) cell))))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smaller" ref="one/presentation/42">
+<h1>Winner</h1>
+
+<pre><code>(def win-cells
+  (let [row1 #{0 1 2}
+        row2 #{3 4 5}
+        row3 #{6 7 8}
+        col1 #{0 3 6}
+        col2 #{1 4 7}
+        col3 #{2 5 8}
+        dia1 #{0 4 8}
+        dia2 #{2 4 6}]
+    [row1 row2 row3 col1 col2 col3 dia1 dia2]))
+
+(defn won? [cells]
+  (some #(every? cells %) win-cells))
+
+(defn winner [position]
+  (cond
+    (won? (:x position)) :x
+    (won? (:o position)) :o))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/43">
+<h1>The AI</h1>
+
+<ul>
+<li>Start with a given position</li>
+<li>Generate the tree of all possible moves</li>
+<li>Pick the best one assuming that the opponent will pick his best one</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/44">
+<h1>Posible moves</h1>
+
+<pre><code>(defn moves [board]
+  (if (winner board)
+    []
+    (map
+      (partial mark board)
+      (empty-cells board))))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content small" ref="one/presentation/45">
+<h1>Game tree</h1>
+
+<pre><code>(defn game-tree [board make-move]
+  {:node board
+   :children (map
+               #(game-tree % make-move)
+               (make-move board))})
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/46">
+<h1>Static evaluation</h1>
+
+<pre><code>(defn evaluate-static-position [position]
+  (case (winner position)
+    :x 1
+    :o -1
+    0))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content small" ref="one/presentation/47">
+<h1>Dynamic evaluation</h1>
+
+<pre><code>(defn evaluator [static-evaluator]
+  (fn [tree]
+    (minimize static-evaluator tree)))
+
+(defn best-move [tree static-evaluator]
+  (:node (apply max-key
+                (evaluator static-evaluator)
+                (:children tree))))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content small" ref="one/presentation/48">
+<h1>Dynamic evaluation</h1>
+
+<pre><code>(defn maximize [evaluator tree]
+  (if (seq (:children tree))
+    (apply max
+           (map #(minimize evaluator %)
+                (:children tree)))
+    (evaluator (:node tree))))
+
+(defn minimize [evaluator tree]
+  (if (seq (:children tree))
+    (apply min
+           (map #(maximize evaluator %)
+                (:children tree)))
+    (evaluator (:node tree))))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content bullets" ref="one/presentation/49">
+<h1>What we got</h1>
+
+<ul>
+<li>No state at all, no assignment</li>
+<li>Damn easy to test</li>
+<li>Modular</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content bullets" ref="one/presentation/50">
+<h1>Modular</h1>
+
+<ul>
+<li>It plays any game of alternating turns</li>
+<li>A small set of functions describe the particular game</li>
+<li>Lazy evaluated</li>
+<li>Easy to prune the tree</li>
+<li>Easy parallelization?</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content title-slide" ref="one/presentation/51">
+<h1>And finally</h1>
+</div>
+</div><div class="slide" data-transition="none"><div class="content title-slide" ref="one/presentation/52">
+<h1>Just to leave you wanting more</h1>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/53">
+<h1>Macros</h1>
+
+<h2>Maybe the most important Lisp feature</h2>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/54">
+<h1>Macros</h1>
+
+<ul>
+<li>Run your code at compile time</li>
+<li>Get code as input</li>
+<li>Return code as output</li>
+<li>It's all data!</li>
+</ul>
+
+</div>
+</div><div class="slide" data-transition="none"><div class="content code" ref="one/presentation/55">
+<pre><code>(def initial-board
+  (board - - -
+         - - -
+         - - -))
+
+(def mid-game
+  (board - x -
+         o x -
+         - o x))
+
+(def game-end
+  (board x o o
+         x x o
+         o x x))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content code" ref="one/presentation/56">
+<pre><code>(defmacro board [&amp; cells]
+  (let [marks (map vector cells all-cells)
+        x (map
+            second
+            (filter #(= 'x (first %)) marks))
+        o (map
+            second
+            (filter #(= 'o (first %)) marks))]
+    `(make-board (vector ~@x) (vector ~@o))))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content code" ref="one/presentation/57">
+<pre><code>(defmacro mark# [board sym]
+  `(mark ~board ~(symbol-&gt;cell sym)))
+
+(mark# ne (board - - -
+                 - x -
+                 - - o))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smaller" ref="one/presentation/58">
+<h1>When was the last time you saw tests like these</h1>
+
+<pre><code>(deftest play-test
+  (is (= (best-move (board - x x
+                           - o -
+                           - - o))
+         (board x x x
+                - o -
+                - - o)))
+
+  (is (= (best-move (board - - o
+                           - x o
+                           x - -))
+         (board - - o
+                - x o
+                x - x))))
+</code></pre>
+</div>
+</div><div class="slide" data-transition="none"><div class="content" ref="one/presentation/59">
+<h1>Thank you</h1>
+</div>
+</div><div class="slide" data-transition="none"><div class="content smbullets" ref="one/presentation/60">
+<h1>Where to go for more</h1>
+
+<ul>
+<li>SICP: Structure &amp; Interpretation of Computer Programs (Abelson/Sussman)</li>
+<li>Why functional programming matters, John Hughes</li>
+<li>Programming Clojure, Stuart Halloway</li>
+<li>The Joy of Clojure, Stuart Halloway, Fogus &amp; Houser</li>
+<li>#clojure @ freenode</li>
+<li>https://github.com/paraseba/tictactoe</li>
+</ul>
+
+</div>
+</div>
+</div>
+
+</body>
+</html>
